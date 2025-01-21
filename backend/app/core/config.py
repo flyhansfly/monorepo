@@ -1,5 +1,6 @@
 import os
 from pydantic import BaseSettings
+from pathlib import Path
 
 
 class Settings(BaseSettings):
@@ -20,7 +21,7 @@ class Settings(BaseSettings):
     ENVIRONMENT: str
 
     class Config:
-        env_file = ".env"  # Load from .env file
+        env_file = Path(__file__).parent / ".env"
 
 
 # Create a singleton settings object to use across the app

@@ -6,20 +6,41 @@ class IntakeFormData(BaseModel):
     """
     Data schema for the patient intake form.
     """
-    age: int
-    gender: str
-    symptoms: List[str]
-    duration: str
-    pain_severity: int
-    affected_body_parts: List[str]
-    additional_notes: Optional[str] = None
+    primary_complaint: str
+    location_of_pain: List[str]
+    describe_pain: str
+    severity: int  # Assuming this is a 0-10 scale
+    frequency: List[str]  # Example: "constant", "intermittent"
+    timing: List[str]  # Example: "morning", "evening", etc.
+    duration_of_symptoms: str  # Example: "3 days", "2 weeks"
+    onset_of_pain: str  # Example: "sudden", "gradual"
+    symptom_progression: str  # Example: "improving", "worsening", "unchanged"
+    red_flag_symptoms: List[str]  # True if red flag symptoms are present
+    red_flag_details: Optional[str]  # Description of red flag symptoms
+    movement_difficulties: List[str]  # Description of movement difficulties
+    activities_affected: List[str]  # Activities impacted by the condition
+    symptom_triggers: List[str]  # Factors that worsen symptoms
+    symptom_relievers: List[str]  # Factors that alleviate symptoms
+
+
+class BaseDiagnosis(BaseModel):
+    diagnosis: str
+    probability: float
+
+
+class ProbabilisticDiagnosis(BaseDiagnosis):
+    icd10_code: str
+
+
+class MainDiagnosis(ProbabilisticDiagnosis):
+    reasoning: str
 
 
 class AnalysisResult(BaseModel):
     """
     Schema for the analysis results returned by the LLM.
     """
-    serious_vs_treatable: str
-    differentiation_probabilities: Dict[str, float]
-    icd10_codes: List[str]
-    recommendations: Optional[str] = None
+    serious_vs_treatable: BaseDiagnosis
+    differentiation_probabilities: List[BaseDiagnosis]
+    main_diagnosis: MainDiagnosis
+    other_probabilistic_diagnosis: List[ProbabilisticDiagnosis]
