@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import intake_analysis
+from app.api import intake_analysis, patient_story
 
 
 app = FastAPI()
@@ -17,7 +17,8 @@ app.add_middleware(
 # app.include_router(intake.router, prefix="/api/intake", tags=["Intake"])
 app.include_router(intake_analysis.router,
                    prefix="/api/intake_analysis", tags=["Intake Analysis"])
-# app.include_router(patient_story.router, prefix="/api/patient_story", tags=["Patient Story"])
+app.include_router(patient_story.router,
+                   prefix="/api/patient_story", tags=["Patient Story"])
 # app.include_router(chatbot.router, prefix="/api/chatbot", tags=["Chabot"])
 
 

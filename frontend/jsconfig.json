@@ -3,6 +3,18 @@
 		"baseUrl": ".",
 		"paths": {
 			"@/*": ["./*"]
-		}
-	}
+		},
+		"jsx": "react-jsx", // Or "react" if you're using older React versions
+		"allowJs": true, // Allows JavaScript and JSX files
+		"resolveJsonModule": true,
+		"moduleResolution": "node",
+		"esModuleInterop": true
+	},
+	"include": [
+		"next-env.d.ts",
+		"**/*.ts",
+		"**/*.tsx",
+		"**/*.js",
+		"**/*.jsx" //
+	]
 }

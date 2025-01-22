@@ -12,11 +12,18 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAtom } from "jotai";
 import { intakeAnalysisResultAtom } from "../atoms/intakeAnalysisResultAtom";
+import { intakeDataAtom } from "../atoms/intakeDataAtom"; // Add this for patient data
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { patientStoryAtom } from "../atoms/patientStoryAtom";
 
 const IntakeAnalysisResultPage = () => {
-	// Retrieve the analysis result from jotai atom
+	// Retrieve the analysis result and patient data from jotai atoms
 	const [analysisResult] = useAtom(intakeAnalysisResultAtom);
-
+	const [intakeData] = useAtom(intakeDataAtom);
+	const router = useRouter();
+	const [loading, setLoading] = useState(false);
+	const [patientStory, setPatientStory] = useAtom(patientStoryAtom);
 	if (!analysisResult) {
 		return (
 			<div className="max-w-4xl mx-auto p-8">
@@ -32,6 +39,31 @@ const IntakeAnalysisResultPage = () => {
 		month: "long",
 		day: "numeric",
 	});
+
+	// API Call for Patient Story
+	const fetchPatientStory = async () => {
+		setLoading(true);
+		try {
+			const response = await fetch("http://localhost:8000/api/patient_story", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(intakeData), // Use patient data for the API call
+			});
+
+			if (!response.ok) {
+				throw new Error("Failed to fetch patient story");
+			}
+
+			const data = await response.json();
+			setPatientStory(data.story);
+			router.push("/chat-with-dr-ray");
+		} catch (error) {
+			console.error("Error fetching patient story:", error);
+			alert("Unable to fetch the patient story. Please try again later.");
+		} finally {
+			setLoading(false);
+		}
+	};
 
 	return (
 		<main className="max-w-7xl mx-auto p-6 space-y-8">
@@ -167,8 +199,18 @@ const IntakeAnalysisResultPage = () => {
 					<Button variant="default">
 						<i className="fas fa-download mr-2"></i>Download Report
 					</Button>
-					<Button variant="outline">
-						<i className="fas fa-calendar-plus mr-2"></i>Schedule Follow-up
+					<Button
+						variant="outline"
+						onClick={fetchPatientStory}
+						disabled={loading}
+					>
+						{loading ? (
+							"Loading..."
+						) : (
+							<>
+								<i className="fas fa-calendar-plus mr-2"></i> Chat with Dr. Ray
+							</>
+						)}
 					</Button>
 				</div>
 				<Button variant="ghost">

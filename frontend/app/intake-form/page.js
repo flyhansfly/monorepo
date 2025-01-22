@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
 import { intakeAnalysisResultAtom } from "../atoms/intakeAnalysisResultAtom";
+import { intakeDataAtom } from "../atoms/intakeDataAtom";
 
 const IntakeFormPage = () => {
 	const defaultValues = {
@@ -29,10 +30,11 @@ const IntakeFormPage = () => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [analysisResult, setAnalysisResult] = useAtom(intakeAnalysisResultAtom);
 	const router = useRouter();
-
+	const [intakeData, setIntakeData] = useAtom(intakeDataAtom);
 	const onSubmit = async (data) => {
 		setIsLoading(true);
 		console.log(data);
+		setIntakeData(data);
 		try {
 			// Send data to the API endpoint
 			const response = await fetch(
