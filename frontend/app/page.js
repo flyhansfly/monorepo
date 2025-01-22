@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 export default function HomePage() {
 	const router = useRouter();
 	const onBeginForm = () => {
+		console.log("Navigating to /intake-form");
+
 		router.push("/intake-form");
 	};
 	return (

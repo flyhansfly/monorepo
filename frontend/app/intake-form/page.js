@@ -2,10 +2,11 @@
 
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
+import { useAtom } from "jotai";
+import { intakeAnalysisResultAtom } from "../atoms/intakeAnalysisResultAtom";
 
-const PatientFormPage = () => {
-	// Default values for the form
+const IntakeFormPage = () => {
 	const defaultValues = {
 		primary_complaint: "Lower back pain",
 		location_of_pain: ["Lower back", "Hip"],
@@ -24,13 +25,52 @@ const PatientFormPage = () => {
 		symptom_relievers: ["Rest", "Stretching"],
 	};
 
-	// Form and state management
-	const { register, handleSubmit, reset } = useForm({ defaultValues });
+	const { register, handleSubmit } = useForm({ defaultValues });
 	const [isLoading, setIsLoading] = useState(false);
+	const [analysisResult, setAnalysisResult] = useAtom(intakeAnalysisResultAtom);
+	const router = useRouter();
 
-	// Handle form submission
 	const onSubmit = async (data) => {
+		setIsLoading(true);
 		console.log(data);
+		try {
+			// Send data to the API endpoint
+			const response = await fetch(
+				"http://localhost:8000/api/intake_analysis/",
+				{
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(data),
+				}
+			);
+
+			console.log(response);
+
+			if (!response.ok) {
+				throw new Error("Failed to analyze the intake form data");
+			}
+
+			const result = await response.json();
+
+			// Validate response structure
+			if (
+				result.serious_vs_treatable &&
+				result.differentiation_probabilities &&
+				result.main_diagnosis &&
+				result.other_probabilistic_diagnosis
+			) {
+				// Store the result in Recoil and navigate to the results page
+				setAnalysisResult(result);
+				router.push("/intake-analysis-result");
+			} else {
+				throw new Error("Unexpected response format from the server");
+			}
+		} catch (error) {
+			console.error("Error submitting the form:", error);
+			alert("An error occurred. Please try again later.");
+		} finally {
+			setIsLoading(false);
+		}
 	};
 
 	// Helper function to render checkbox groups
@@ -316,4 +356,4 @@ const PatientFormPage = () => {
 	);
 };
 
-export default PatientFormPage;
+export default IntakeFormPage;

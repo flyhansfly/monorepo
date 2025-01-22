@@ -8,9 +8,9 @@ class IntakeFormData(BaseModel):
     """
     primary_complaint: str
     location_of_pain: List[str]
-    describe_pain: str
+    describe_pain: List[str]  # Changed from str to List[str]
     severity: int  # Assuming this is a 0-10 scale
-    frequency: List[str]  # Example: "constant", "intermittent"
+    frequency: str  # Example: "constant", "intermittent" (changed to str)
     timing: List[str]  # Example: "morning", "evening", etc.
     duration_of_symptoms: str  # Example: "3 days", "2 weeks"
     onset_of_pain: str  # Example: "sudden", "gradual"
@@ -30,6 +30,7 @@ class BaseDiagnosis(BaseModel):
 
 class ProbabilisticDiagnosis(BaseDiagnosis):
     icd10_code: str
+    simple_explanation: str
 
 
 class MainDiagnosis(ProbabilisticDiagnosis):
