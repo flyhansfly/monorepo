@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useAtom } from "jotai";
 import { patientStoryAtom } from "../../atoms/patientStoryAtom";
 import { intakeDataAtom } from "../../atoms/intakeDataAtom";
+import ReactMarkdown from "react-markdown";
 
 const PatientStory = () => {
 	const [patientStory, setPatientStory] = useAtom(patientStoryAtom);
@@ -14,8 +15,7 @@ const PatientStory = () => {
 	useEffect(() => {
 		const fetchPatientStory = async () => {
 			if (patientStory) {
-				// If story is already available, no need to fetch
-				return;
+				return; // If story is already available, no need to fetch
 			}
 
 			if (!intakeData) {
@@ -30,7 +30,7 @@ const PatientStory = () => {
 				const response = await fetch("/api/patient_story", {
 					method: "POST",
 					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({ intakeData }), // Adjust to match your API's expectations
+					body: JSON.stringify({ intakeData }),
 				});
 
 				if (!response.ok) {
@@ -50,19 +50,43 @@ const PatientStory = () => {
 	}, [patientStory, intakeData, setPatientStory]);
 
 	return (
-		<div className="h-full p-6 bg-gray-50 border-r">
-			<h2 className="text-lg font-semibold mb-4">Patient Story</h2>
-			<div className="overflow-y-auto h-full">
+		<div
+			className="h-screen p-6 bg-gray-50 border-r overflow-y-auto"
+			style={{ backgroundColor: "#f5f5f5", color: "#1d1d1d" }}
+		>
+			<h2
+				className="text-2xl font-bold mb-4"
+				style={{ fontFamily: "monospace", color: "#1d1d1d" }}
+			>
+				Patient Story
+			</h2>
+			<div className="h-full">
 				{loading ? (
-					<p className="text-sm text-muted-foreground">
+					<p
+						className="text-lg text-muted-foreground"
+						style={{ fontFamily: "monospace" }}
+					>
 						Loading patient story...
 					</p>
 				) : error ? (
-					<p className="text-sm text-red-600">{error}</p>
-				) : patientStory ? (
-					<p className="text-sm text-muted-foreground">{patientStory}</p>
+					<p
+						className="text-lg text-red-600"
+						style={{ fontFamily: "monospace" }}
+					>
+						{error}
+					</p>
+				) : patientStory && patientStory.length > 0 ? (
+					// Map over paragraphs if the story exists
+					patientStory.map((paragraph, index) => (
+						<ReactMarkdown
+							key={index}
+							className="text-base leading-relaxed mb-4 font-mono text-[#1d1d1d]"
+						>
+							{paragraph.paragraph}
+						</ReactMarkdown>
+					))
 				) : (
-					<p className="text-sm text-muted-foreground">
+					<p className="text-lg text-muted-foreground font-mono text-[#de3737]">
 						No patient story available. Please try again.
 					</p>
 				)}

@@ -11,12 +11,12 @@ export default function ChatWithDrRayPage() {
 	return (
 		<div className="flex h-screen">
 			{/* Left Panel */}
-			<div className="w-1/3">
+			<div className="w-3/5 bg-gray-100">
 				<PatientStory />
 			</div>
 
 			{/* Right Panel */}
-			<div className="flex-1">
+			<div className="w-2/5">
 				<Chat initialMessages={initialMessages} />
 			</div>
 		</div>
