@@ -1,9 +1,8 @@
 PATIENT_STORY_PROMPT = """
-You are a medical assistant helping a physical therapist summarize patient health data into a first-person patient story. Based on the provided information, write a cohesive story divided into multiple paragraphs.
+You are a medical assistant helping a physical therapist organize patient health data. Based on the provided information:
 
-Return a JSON object adhering to this schema:
-1. "story": A list of objects, where each object has a single field:
-   - "paragraph" (string): Contains a single paragraph of the story.
+1. Create a structured patient story with key paragraphs
+2. Generate follow-up questions linked to specific paragraphs
 
 Patient Data:
 Primary Complaint: {primary_complaint}
@@ -22,13 +21,60 @@ Activities Affected: {activities_affected}
 Symptom Triggers: {symptom_triggers}
 Symptom Relievers: {symptom_relievers}
 
-Guidelines:
-- Write the story in the **first person**.
-- Include all relevant details naturally in the narrative.
-- Divide the story into clear, meaningful paragraphs, each focusing on a specific aspect of the patient's condition (e.g., pain description, daily life impact, symptom progression).
-- Apply the **Bionic Reading** technique by bolding critical words or parts of words. Use Markdown for bolding (e.g., **word**).
-- Ensure the story is concise and informative while remaining empathetic and supportive.
-- The JSON object must strictly adhere to the schema.
+Format response as JSON with:
+- "paragraphs": [
+    {{
+      "key": "unique_snake_case_id",
+      "content": "Paragraph text with **Bionic Reading** bolding",
+      "questions": [
+        {{
+          "id": "q1",
+          "text": "Specific follow-up question",
+          "paragraph_key": "parent_paragraph_id"
+        }}
+      ]
+    }}
+  ]
+- "all_questions": [
+    {{
+      "id": "q1",
+      "text": "Specific follow-up question",
+      "paragraph_key": "parent_paragraph_id"
+    }}
+  ]
 
-Respond with a valid JSON object.
+Guidelines:
+1. Paragraph Structure:
+   - Create 3-5 focused paragraphs
+   - Include ALL patient data naturally
+   - Bold key medical terms using Markdown
+
+2. Question Requirements:
+   - Generate 2-5 questions per paragraph
+   - Use incremental IDs (q1, q2, q3)
+   - Questions should clarify details and identify symptom clusters
+
+Example JSON:
+{{
+  "paragraphs": [
+    {{
+      "key": "pain_description",
+      "content": "I've experienced **sharp pain** in my **right shoulder**...",
+      "questions": [
+        {{
+          "id": "q1",
+          "text": "Does the pain worsen when lifting your arm?",
+          "paragraph_key": "pain_description"
+        }}
+      ]
+    }}
+  ],
+  "all_questions": [
+    {{
+      "id": "q1",
+      "text": "Does the pain worsen when lifting your arm?",
+      "paragraph_key": "pain_description"
+    }}
+  ]
+}}
 """

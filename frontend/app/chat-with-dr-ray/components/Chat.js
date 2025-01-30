@@ -1,83 +1,100 @@
 "use client";
+import { useState, useEffect } from "react";
+import { useAtom } from "jotai";
+import { patientStoryAtom } from "../../atoms/patientStoryAtom";
+import { treatmentPlanAtom } from "../../atoms/treatmentPlanAtom";
 
-import { useState } from "react";
+export default function LinearChat() {
+	const [patientStory] = useAtom(patientStoryAtom);
+	const [treatmentPlan, setTreatmentPlan] = useAtom(treatmentPlanAtom);
+	const [currentQuestion, setCurrentQuestion] = useState(null);
+	const [userAnswer, setUserAnswer] = useState("");
+	const [sessionId, setSessionId] = useState(null);
+	const [isComplete, setIsComplete] = useState(false);
 
-const Chat = ({ initialMessages = [] }) => {
-	const [messages, setMessages] = useState(initialMessages);
-	const [inputValue, setInputValue] = useState("");
+	// Start session when component mounts
+	useEffect(() => {
+		const startSession = async () => {
+			const response = await fetch("http://localhost:8000/api/chatbot/start", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(patientStory),
+			});
 
-	const handleSendMessage = () => {
-		if (!inputValue.trim()) return;
+			const data = await response.json();
+			setSessionId(data.session_id);
+			setCurrentQuestion(data.current_question);
+		};
 
-		setMessages((prev) => [
-			...prev,
-			{ id: prev.length + 1, message: inputValue, sender: "user" },
-		]);
+		if (patientStory) startSession();
+	}, [patientStory]);
 
-		// Simulate bot response (replace with API call)
-		setTimeout(() => {
-			setMessages((prev) => [
-				...prev,
-				{
-					id: prev.length + 1,
-					message: "This is a bot response.",
-					sender: "bot",
-				},
-			]);
-		}, 1000);
+	const handleSubmit = async () => {
+		const response = await fetch("http://localhost:8000/api/chatbot/next", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				session_id: sessionId,
+				user_input: userAnswer,
+			}),
+		});
 
-		setInputValue("");
+		const data = await response.json();
+
+		if (data.is_complete) {
+			// Get final analysis
+			const analysisRes = await fetch("/api/final-analysis", {
+				method: "POST",
+				body: JSON.stringify({ session_id: sessionId }),
+			});
+
+			const analysisData = await analysisRes.json();
+			setTreatmentPlan(analysisData);
+			setIsComplete(true);
+		} else {
+			setCurrentQuestion(data.current_question);
+			setUserAnswer("");
+		}
 	};
 
-	return (
-		<div className="flex flex-col h-full border rounded-lg shadow bg-white">
-			{/* Messages */}
-			<div className="flex-1 overflow-y-auto p-4 space-y-4">
-				{messages.map((message) => (
-					<div
-						key={message.id}
-						className={`flex ${
-							message.sender === "user" ? "justify-end" : "justify-start"
-						}`}
-					>
-						<div
-							className={`max-w-xs p-3 rounded-lg text-sm ${
-								message.sender === "user"
-									? "bg-blue-500 text-white"
-									: "bg-gray-200 text-gray-800"
-							}`}
-						>
-							{message.message}
-						</div>
-					</div>
-				))}
-			</div>
+	if (!patientStory) return <div>Loading...</div>;
 
-			{/* Input */}
-			<form
-				onSubmit={(e) => {
-					e.preventDefault();
-					handleSendMessage();
-				}}
-				className="border-t p-3 flex items-center space-x-3"
-			>
-				<input
-					type="text"
-					placeholder="Type your message here..."
-					className="flex-1 border rounded-lg px-3 py-2 focus:ring focus:ring-blue-300"
-					value={inputValue}
-					onChange={(e) => setInputValue(e.target.value)}
-				/>
-				<button
-					type="button"
-					className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
-					onClick={handleSendMessage}
-				>
-					Send
-				</button>
-			</form>
+	return (
+		<div className="p-6 max-w-md mx-auto">
+			{!isComplete ? (
+				<div className="space-y-4">
+					<div className="bg-blue-100 p-4 rounded-lg">
+						<h3 className="font-semibold mb-2">
+							{currentQuestion?.text || "Loading question..."}
+						</h3>
+					</div>
+
+					<textarea
+						value={userAnswer}
+						onChange={(e) => setUserAnswer(e.target.value)}
+						className="w-full p-2 border rounded"
+						rows="3"
+						placeholder="Your answer..."
+					/>
+
+					<button
+						onClick={handleSubmit}
+						className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+					>
+						Next Question
+					</button>
+				</div>
+			) : (
+				<div className="text-center space-y-4">
+					<h2 className="text-xl font-bold">Assessment Complete</h2>
+					<button
+						onClick={() => setIsComplete(false)}
+						className="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600"
+					>
+						View Treatment Plan
+					</button>
+				</div>
+			)}
 		</div>
 	);
-};
-
-export default Chat;
+}

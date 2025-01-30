@@ -9,21 +9,21 @@ import { intakeDataAtom } from "../atoms/intakeDataAtom";
 
 const IntakeFormPage = () => {
 	const defaultValues = {
-		primary_complaint: "Lower back pain",
-		location_of_pain: ["Lower back", "Hip"],
-		describe_pain: ["Sharp", "Throbbing"],
-		severity: 7,
+		primary_complaint: "Mild shoulder pain",
+		location_of_pain: ["Shoulder"],
+		describe_pain: ["Aching"],
+		severity: 3, // Lower severity for "treatable"
 		frequency: "Intermittent",
-		timing: ["Morning", "During physical activity"],
-		duration_of_symptoms: "1-3 months",
+		timing: ["During physical activity"],
+		duration_of_symptoms: "1-4 weeks", // Shorter duration for treatable conditions
 		onset_of_pain: "Gradually over time",
-		symptom_progression: "Gotten worse",
-		red_flag_symptoms: ["Severe weakness in the legs"],
-		red_flag_details: "Weakness after prolonged sitting",
-		movement_difficulties: ["Bending forward (flexion)", "Twisting (rotation)"],
-		activities_affected: ["Dressing", "Working", "Recreational activities"],
-		symptom_triggers: ["Sitting", "Driving"],
-		symptom_relievers: ["Rest", "Stretching"],
+		symptom_progression: "Improved", // Indicate improvement
+		red_flag_symptoms: [], // No red flags for treatable
+		red_flag_details: "",
+		movement_difficulties: ["Lifting objects"],
+		activities_affected: ["Working", "Recreational activities"],
+		symptom_triggers: ["Physical activity"],
+		symptom_relievers: ["Rest", "Stretching", "Massage"],
 	};
 
 	const { register, handleSubmit } = useForm({ defaultValues });
