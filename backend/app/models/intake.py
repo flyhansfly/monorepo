@@ -37,11 +37,18 @@ class MainDiagnosis(ProbabilisticDiagnosis):
     reasoning: str
 
 
+class BigMuscleGroup(BaseModel):
+    name: str
+    description: str
+    probability: float
+
+
 class AnalysisResult(BaseModel):
     """
     Schema for the analysis results returned by the LLM.
     """
     serious_vs_treatable: BaseDiagnosis
     differentiation_probabilities: List[BaseDiagnosis]
+    big_muscle_group: BigMuscleGroup
     main_diagnosis: MainDiagnosis
     other_probabilistic_diagnosis: List[ProbabilisticDiagnosis]
