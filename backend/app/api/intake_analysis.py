@@ -7,6 +7,31 @@ import logging
 from langchain.globals import set_llm_cache
 from langchain.cache import InMemoryCache
 
+import os
+import datetime
+import json
+
+# Set up the data directory relative to this file's location.
+# Adjust the relative path as needed to reach your project root.
+DATA_DIR = os.path.join(os.path.dirname(__file__), '../../../data/raw')
+os.makedirs(DATA_DIR, exist_ok=True)
+FILE_PATH = os.path.join(DATA_DIR, "user_responses.jsonl")
+
+def store_analysis_result(intake_data, analysis_result, session_id):
+    """
+    Save the analysis result along with the intake data and session info to a JSONL file.
+    """
+    record = {
+        "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
+        "session_id": session_id,
+        "intake_data": intake_data,
+        "analysis_result": analysis_result,
+        "source": "user_generated"
+    }
+    with open(FILE_PATH, "a") as f:
+        f.write(json.dumps(record) + "\n")
+
+
 set_llm_cache(InMemoryCache())
 # Configure logging
 logging.basicConfig(level=logging.INFO,
@@ -31,6 +56,13 @@ async def analyze_intake_form(data: IntakeFormData):
             output_parser=analysis_result_parser,
         )
         logger.info(f"LLM Response: {response}")
+
+        # Generate a session_id (for example, by hashing the intake data)
+        session_id = str(hash(json.dumps(data.dict(), sort_keys=True)))
+
+        # Store the result to the designated file for training purposes
+        store_analysis_result(data.dict(), response, session_id)
+        
         return response
     except Exception as e:
         logger.error(f"Error: {str(e)}")
