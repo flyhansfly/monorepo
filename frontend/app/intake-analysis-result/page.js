@@ -56,7 +56,7 @@ const IntakeAnalysisResultPage = () => {
 
 			const data = await response.json();
 			setPatientStory(data.story);
-			router.push("/chat-with-dr-ray");
+			router.push("/conversation-with-ai");
 		} catch (error) {
 			console.error("Error fetching patient story:", error);
 			alert("Unable to fetch the patient story. Please try again later.");
