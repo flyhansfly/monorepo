@@ -25,7 +25,7 @@ def store_analysis_result(intake_data, analysis_result, session_id):
         "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
         "session_id": session_id,
         "intake_data": intake_data,
-        "analysis_result": analysis_result,
+        "analysis_result": analysis_result.json(),  # Convert Pydantic model to JSON string
         "source": "user_generated"
     }
     with open(FILE_PATH, "a") as f:

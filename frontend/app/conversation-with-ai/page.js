@@ -9,62 +9,53 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function ConversationWithAI() {
     const [conversation, setConversation] = useAtom(conversationAtom);
-    const [showWidget, setShowWidget] = useState(false);
     const router = useRouter();
 
-    useEffect(() => {
-        // Initialize ElevenLabs widget
-        const script = document.createElement('script');
-        script.src = 'https://widget.elevenlabs.io/widget.js';
-        script.async = true;
-        script.onload = () => {
-            // Initialize the widget with your API key
-            if (window.ElevenLabs) {
-                window.ElevenLabs.init({
-                    apiKey: process.env.NEXT_PUBLIC_ELEVENLABS_API_KEY,
-                    voiceId: 'your_voice_id_here', // Replace with your voice ID
-                    onComplete: handleConversationComplete
-                });
-                setShowWidget(true);
-            }
-        };
-        document.body.appendChild(script);
-
-        return () => {
-            document.body.removeChild(script);
-        };
-    }, []);
-
-    const handleConversationComplete = async (data) => {
+    const handleConversationEnd = async (event) => {
         try {
-            // Send conversation data to backend
-            const response = await fetch('http://localhost:8000/api/process_conversation', {
+            // Get conversation details from the event
+            const { conversationId } = event.detail;
+            
+            // Fetch conversation transcript from ElevenLabs API
+            const response = await fetch(`https://api.elevenlabs.io/v1/convai/conversations/${conversationId}`, {
+                headers: {
+                    'xi-api-key': process.env.NEXT_PUBLIC_ELEVENLABS_API_KEY
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to fetch conversation transcript');
+            }
+            
+            const conversationData = await response.json();
+            
+            // Send transcript to backend for analysis
+            const analysisResponse = await fetch('/api/process-conversation', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    questions: data.questions || [],
-                    answers: data.answers || [],
-                    patient_story: data.patient_story
+                    conversation_id: conversationId,
+                    transcript: conversationData.transcript,
+                    metadata: conversationData.metadata
                 }),
             });
 
-            if (!response.ok) {
+            if (!analysisResponse.ok) {
                 throw new Error('Failed to process conversation');
             }
 
-            const result = await response.json();
+            const analysisResult = await analysisResponse.json();
             
-            // Update conversation state
+            // Update conversation state with analysis result
             setConversation(prev => ({
                 ...prev,
-                questions: data.questions || [],
-                answers: data.answers || [],
+                analysisResult,
                 isComplete: true
             }));
 
-            // Navigate to the final analysis page
+            // Navigate to final analysis page
             router.push('/final-analysis-treatment-plan');
         } catch (error) {
             console.error('Error processing conversation:', error);
@@ -72,23 +63,49 @@ export default function ConversationWithAI() {
         }
     };
 
+    useEffect(() => {
+        // Add the ElevenLabs conversation widget script
+        const script = document.createElement('script');
+        script.src = 'https://elevenlabs.io/convai-widget/index.js';
+        script.async = true;
+        document.body.appendChild(script);
+
+        // Add event listener for conversation end
+        window.addEventListener('elevenlabs-conversation-end', handleConversationEnd);
+
+        return () => {
+            document.body.removeChild(script);
+            window.removeEventListener('elevenlabs-conversation-end', handleConversationEnd);
+        };
+    }, []);
+
     return (
         <div className="min-h-screen bg-gray-50">
             <div className="container mx-auto px-4 py-8">
                 <div className="max-w-4xl mx-auto">
                     <div className="mb-8">
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Conversation with AI Assistant</h1>
+                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Conversation with AI Assistant for Detailed Questionnaire</h1>
                         <p className="text-gray-600">Please interact with our AI assistant to provide additional information about your condition.</p>
+                        <p className="text-gray-600">This will give as a better understanding of your condition and help us create a more personalized treatment plan.</p>
                     </div>
 
-                    <Card className="mb-8">
-                        <CardHeader>
-                            <CardTitle>AI Assistant</CardTitle>
+                    <Card className="mb-8 w-[400px] mx-auto">
+                        <CardHeader className="border-b py-2">
+                            <CardTitle className="text-xl">AI Assistant</CardTitle>
                         </CardHeader>
-                        <CardContent>
-                            {showWidget && (
-                                <div id="elevenlabs-widget" className="w-full"></div>
-                            )}
+                        <CardContent className="p-0">
+                            <div className="w-full h-[300px] relative">
+                                <elevenlabs-convai 
+                                    agent-id="ojsxNAU3sV8Ox3qVEc9n"
+                                    style={{
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        width: '100%',
+                                        height: '100%'
+                                    }}
+                                ></elevenlabs-convai>
+                            </div>
                         </CardContent>
                     </Card>
 
