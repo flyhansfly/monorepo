@@ -277,6 +277,56 @@ export default function FinalAnalysisTreatmentPlan() {
 					</Button>
 				</div>
 			</footer>
+
+			{/* Feedback Section */}
+			<section className="mt-8">
+				<Card>
+					<CardHeader>
+						<CardTitle>We'd Love to Hear from You!</CardTitle>
+						<CardDescription className="text-lg">
+							Put in your email for detailed analysis and treatment review OR to give us a feedback (we would love one!!)
+						</CardDescription>
+					</CardHeader>
+					<CardContent>
+						<form onSubmit={async (e) => {
+							e.preventDefault();
+							const formData = new FormData(e.target);
+							const feedback = formData.get('feedback');
+							
+							try {
+								const response = await fetch('/api/feedback', {
+									method: 'POST',
+									headers: {
+										'Content-Type': 'application/json',
+									},
+									body: JSON.stringify({
+										feedback,
+										analysisResult
+									}),
+								});
+
+								if (response.ok) {
+									alert('Thank you for your feedback! We appreciate your input.');
+								} else {
+									alert('Failed to submit feedback. Please try again.');
+								}
+							} catch (error) {
+								console.error('Error submitting feedback:', error);
+								alert('An error occurred. Please try again.');
+							}
+						}} className="space-y-4">
+							<textarea
+								name="feedback"
+								placeholder="Enter your email or feedback here..."
+								className="w-full p-4 border rounded-md min-h-[100px] text-lg"
+							/>
+							<Button type="submit" variant="default" className="w-full">
+								Submit
+							</Button>
+						</form>
+					</CardContent>
+				</Card>
+			</section>
 		</main>
 	);
 }
