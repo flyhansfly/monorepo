@@ -56,7 +56,7 @@ const IntakeAnalysisResultPage = () => {
 
 			const data = await response.json();
 			setPatientStory(data.story);
-			router.push("/conversation-with-ai");
+			router.push("/final-analysis");
 		} catch (error) {
 			console.error("Error fetching patient story:", error);
 			alert("Unable to fetch the patient story. Please try again later.");
@@ -238,7 +238,7 @@ const IntakeAnalysisResultPage = () => {
 						) : (
 							<>
 								<i className="fas fa-calendar-plus mr-1"></i>
-								Chat with Dr. Ray
+								Proceed to detailed questions
 							</>
 						)}
 					</Button>

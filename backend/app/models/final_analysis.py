@@ -54,10 +54,39 @@ class FinalAnalysisFormData(BaseModel):
     """
     Data schema for the final analysis form.
     """
-    positionChangePain: PositionChangePain
-    activityLevel: ActivityLevel
-    legPain: str
-    painTime: PainTime
+    position_change_pain: PositionChangePain
+    activity_level: ActivityLevel
+    leg_pain: str
+    pain_time: PainTime
     accidents: str
-    bowelBladder: str
-    fever: str 
+    bowel_bladder: str
+    fever: str
+
+class TreatmentRecommendation(BaseModel):
+    """
+    Schema for treatment recommendations.
+    """
+    type: str  # e.g., "Exercise", "Lifestyle Change", "Physical Therapy"
+    description: str
+    priority: int = Field(..., ge=1, le=5)  # 1 is highest priority, 5 is lowest
+    frequency: Optional[str] = None  # e.g., "3 times per week", "Daily"
+    duration: Optional[str] = None  # e.g., "2 weeks", "Until pain subsides"
+
+class FinalAnalysisResult(BaseModel):
+    """
+    Schema for the complete final analysis result.
+    """
+    main_diagnosis: MainDiagnosis
+    big_muscle_group: BigMuscleGroup
+    other_probabilistic_diagnosis: List[ProbabilisticDiagnosis]
+    treatment_recommendations: List[TreatmentRecommendation]
+    reasoning: str
+    serious_vs_treatable: BaseDiagnosis
+    differentiation_probabilities: List[BaseDiagnosis]
+
+    @validator('differentiation_probabilities')
+    def validate_probabilities_sum(cls, v):
+        total = sum(item.probability for item in v)
+        if not 0.99 <= total <= 1.01:  # Allow for small floating point errors
+            raise ValueError("Probabilities must sum to 1")
+        return v 

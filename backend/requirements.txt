@@ -24,7 +24,7 @@ cffi==1.15.1
 chardet==5.2.0
 charset-normalizer==3.2.0
 chroma-hnswlib==0.7.3
-chromadb==0.4.11
+chromadb>=0.4.11
 click==8.1.7
 coloredlogs==15.0.1
 comm==0.1.4
@@ -48,7 +48,7 @@ emoji==2.8.0
 et-xmlfile==1.1.0
 executing==1.2.0
 faiss-cpu==1.7.4
-fastapi==0.99.1
+fastapi>=0.100.0
 ffmpeg==1.4
 ffmpeg-python==0.2.0
 filelock==3.12.4
@@ -118,7 +118,7 @@ olefile==0.46
 omegaconf==2.3.0
 onnx==1.14.1
 onnxruntime==1.16.0
-openai==0.28.0
+openai>=1.74.0
 opencv-python==4.8.0.76
 openpyxl==3.1.2
 orjson==3.9.9
@@ -149,7 +149,7 @@ pure-eval==0.2.2
 pyarrow==13.0.0
 pycocotools==2.0.7
 pycparser==2.21
-pydantic==1.10.12
+pydantic>=2.0.0,<3.0.0
 pydantic_core==2.6.3
 pydeck==0.8.0
 pydub==0.25.1
@@ -192,7 +192,7 @@ smmap==5.0.0
 sniffio==1.3.0
 socksio==1.0.0
 soupsieve==2.5
-spacy==3.6.1
+spacy>=3.6.1
 spacy-legacy==3.0.12
 spacy-loggers==1.0.5
 SQLAlchemy>=1.4,<3
@@ -227,7 +227,7 @@ unstructured==0.10.16
 unstructured-inference==0.6.6
 unstructured.pytesseract==0.3.12
 urllib3==1.26.16
-uvicorn==0.23.2
+uvicorn>=0.23.2
 validators==0.22.0
 wasabi==1.1.2
 watchdog==3.0.0
@@ -240,3 +240,12 @@ XlsxWriter==3.1.5
 yarl==1.9.2
 zipp==3.16.2
 flask>=2.0.0
+pydantic-settings==2.1.0
+langchain-community>=0.0.13
+langchain-openai>=0.3.12
+langchain-core>=0.3.49
+openai>=1.68.2
+tiktoken>=0.7
+langsmith>=0.1.125
+tenacity>=8.1.0
+jsonpatch>=1.33

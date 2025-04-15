@@ -35,6 +35,45 @@ export default function FinalAnalysisTreatmentPlan() {
 		);
 	}
 
+	// Validate required fields
+	const requiredFields = [
+		'main_diagnosis',
+		'big_muscle_group',
+		'other_probabilistic_diagnosis',
+		'treatment_recommendations',
+		'serious_vs_treatable',
+		'differentiation_probabilities'
+	];
+
+	const missingFields = requiredFields.filter(field => !analysisResult[field]);
+	if (missingFields.length > 0) {
+		return (
+			<div className="min-h-screen bg-gray-50 py-12">
+				<div className="max-w-4xl mx-auto px-4">
+					<Card>
+						<CardHeader>
+							<CardTitle>Invalid Analysis Results</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<p>Some required data is missing from the analysis results:</p>
+							<ul className="list-disc pl-5 mt-2">
+								{missingFields.map(field => (
+									<li key={field}>{field}</li>
+								))}
+							</ul>
+							<Button 
+								onClick={() => router.push('/final-analysis')}
+								className="mt-4"
+							>
+								Try Again
+							</Button>
+						</CardContent>
+					</Card>
+				</div>
+			</div>
+		);
+	}
+
 	// Today's date
 	const today = new Date().toLocaleDateString(undefined, {
 		year: "numeric",
@@ -195,6 +234,38 @@ export default function FinalAnalysisTreatmentPlan() {
 						</CardContent>
 					</Card>
 				</div>
+			</section>
+
+			{/* Treatment Recommendations */}
+			<section className="mt-6">
+				<Card>
+					<CardHeader>
+						<CardTitle>Treatment Recommendations</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div className="space-y-4">
+							{analysisResult.treatment_recommendations.map((rec, idx) => (
+								<div key={idx} className="border-b last:border-0 pb-4">
+									<div className="flex justify-between items-start">
+										<div>
+											<h3 className="font-semibold">{rec.type}</h3>
+											<p className="text-sm text-muted-foreground mt-1">
+												{rec.description}
+											</p>
+										</div>
+										<Badge variant="outline">
+											Priority {rec.priority}
+										</Badge>
+									</div>
+									<div className="mt-2 text-sm text-muted-foreground">
+										<p>Frequency: {rec.frequency}</p>
+										<p>Duration: {rec.duration}</p>
+									</div>
+								</div>
+							))}
+						</div>
+					</CardContent>
+				</Card>
 			</section>
 
 			{/* Footer */}

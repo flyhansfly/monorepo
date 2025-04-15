@@ -9,7 +9,7 @@ import logging
 import traceback
 from langchain.globals import set_llm_cache
 from langchain.cache import InMemoryCache
-from app.models.final_analysis import FinalAnalysisFormData, AnalysisResult, FinalAnalysisResponse, BaseDiagnosis, BigMuscleGroup, TreatmentRecommendation
+from app.models.final_analysis import FinalAnalysisFormData, FinalAnalysisResult, BaseDiagnosis, BigMuscleGroup, TreatmentRecommendation
 from app.prompts.final_analysis_prompt import FINAL_ANALYSIS_PROMPT
 import json
 import os
@@ -60,11 +60,11 @@ async def health_check():
     """
     return {"status": "ok", "service": "final-analysis"}
 
-# Instantiate the Pydantic parser for AnalysisResult
-analysis_result_parser = PydanticOutputParser(pydantic_object=AnalysisResult)
+# Instantiate the Pydantic parser for FinalAnalysisResult
+result_parser = PydanticOutputParser(pydantic_object=FinalAnalysisResult)
 
 # Define the API endpoint for processing final analysis
-@router.post("/final-analysis", response_model=AnalysisResult)
+@router.post("/final-analysis", response_model=FinalAnalysisResult)
 async def analyze_final_form(data: FinalAnalysisFormData):
     logger.info("Received request to analyze final form.")
     try:
@@ -99,44 +99,14 @@ Clinical Reasoning: {intake_analysis.reasoning}
         # Format the input data for the LLM
         formatted_input = {
             "intake_analysis": formatted_intake_analysis,
-            "position_change_pain": input_data["positionChangePain"],
-            "activity_level": input_data["activityLevel"],
-            "leg_pain": input_data["legPain"],
-            "pain_time": input_data["painTime"],
+            "position_change_pain": input_data["position_change_pain"],
+            "activity_level": input_data["activity_level"],
+            "leg_pain": input_data["leg_pain"],
+            "pain_time": input_data["pain_time"],
             "accidents": input_data["accidents"],
-            "bowel_bladder": input_data["bowelBladder"],
-            "fever": input_data["fever"],
-            "pain_location": input_data["painLocation"],
-            "pain_description": input_data["painDescription"],
-            "pain_duration": input_data["painDuration"],
-            "pain_frequency": input_data["painFrequency"],
-            "pain_intensity": input_data["painIntensity"],
-            "pain_aggravating_factors": input_data["painAggravatingFactors"],
-            "pain_relieving_factors": input_data["painRelievingFactors"],
-            "pain_history": input_data["painHistory"],
-            "medical_history": input_data["medicalHistory"],
-            "medications": input_data["medications"],
-            "allergies": input_data["allergies"],
-            "family_history": input_data["familyHistory"],
-            "social_history": input_data["socialHistory"],
-            "review_of_systems": input_data["reviewOfSystems"],
-            "physical_exam": input_data["physicalExam"],
-            "imaging": input_data["imaging"],
-            "lab_work": input_data["labWork"],
-            "other_tests": input_data["otherTests"],
-            "other_notes": input_data["otherNotes"]
+            "bowel_bladder": input_data["bowel_bladder"],
+            "fever": input_data["fever"]
         }
-
-        # Add derived fields for the prompt template based on positionChangePain
-        if formatted_input["position_change_pain"] == PositionChangePain.FLEXION:
-            formatted_input["pain_in_flexion"] = "yes"
-            formatted_input["pain_in_extension"] = "no"
-        elif formatted_input["position_change_pain"] == PositionChangePain.EXTENSION:
-            formatted_input["pain_in_flexion"] = "no"
-            formatted_input["pain_in_extension"] = "yes"
-        else:  # NO_PAIN
-            formatted_input["pain_in_flexion"] = "no"
-            formatted_input["pain_in_extension"] = "no"
 
         logger.info("Calling LLM service...")
         # Get the analysis result from the LLM
@@ -144,28 +114,28 @@ Clinical Reasoning: {intake_analysis.reasoning}
             analysis_result = llm_service.generate_response(
                 prompt_template=FINAL_ANALYSIS_PROMPT,
                 input_variables=formatted_input,
-                output_parser=analysis_result_parser
+                output_parser=result_parser
             )
             
-            # Convert the result to a dictionary if it's not already
-            if not isinstance(analysis_result, dict):
-                analysis_result = analysis_result.dict()
-                
-            # Create the FinalAnalysisResponse model
-            response = FinalAnalysisResponse(
-                main_diagnosis=BaseDiagnosis(**analysis_result["main_diagnosis"]),
-                big_muscle_group=BigMuscleGroup(**analysis_result["big_muscle_group"]),
-                other_probabilistic_diagnosis=[
-                    BaseDiagnosis(**diagnosis) 
-                    for diagnosis in analysis_result["other_probabilistic_diagnosis"]
-                ],
-                treatment_recommendations=[
-                    TreatmentRecommendation(**recommendation)
-                    for recommendation in analysis_result["treatment_recommendations"]
-                ],
-                reasoning=analysis_result["reasoning"]
-            )
+            # Validate the result
+            if not analysis_result.main_diagnosis:
+                raise ValueError("LLM response missing main_diagnosis field")
+            if not analysis_result.big_muscle_group:
+                raise ValueError("LLM response missing big_muscle_group field")
+            if not analysis_result.treatment_recommendations:
+                raise ValueError("LLM response missing treatment_recommendations field")
             
+            # Store the result
+            store_analysis_result(input_data, analysis_result, "session_id")
+
+            return analysis_result
+            
+        except ValueError as ve:
+            logger.error(f"Validation error in LLM response: {str(ve)}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Error validating LLM response: {str(ve)}"
+            )
         except Exception as e:
             logger.error(f"Error generating LLM response: {str(e)}")
             logger.error(traceback.format_exc())
@@ -173,11 +143,6 @@ Clinical Reasoning: {intake_analysis.reasoning}
                 status_code=500,
                 detail=f"Error generating analysis: {str(e)}"
             )
-
-        # Store the result
-        store_analysis_result(input_data, response, "session_id")
-
-        return response
 
     except ValidationError as e:
         logger.error(f"Validation error: {str(e)}")

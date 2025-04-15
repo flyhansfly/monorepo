@@ -37,12 +37,12 @@ export default function FinalAnalysis() {
     const [error, setError] = useState(null);
     const [, setAnalysisResult] = useAtom(finalAnalysisResultAtom);
     const [formData, setFormData] = useState({
-        positionChangePain: POSITION_CHANGE_PAIN.NO_PAIN,
-        activityLevel: ACTIVITY_LEVEL.NONE,
-        legPain: "no",
-        painTime: PAIN_TIME.AM,
+        position_change_pain: POSITION_CHANGE_PAIN.NO_PAIN,
+        activity_level: ACTIVITY_LEVEL.NONE,
+        leg_pain: "no",
+        pain_time: PAIN_TIME.AM,
         accidents: "no",
-        bowelBladder: "no",
+        bowel_bladder: "no",
         fever: "no"
     });
 
@@ -79,12 +79,12 @@ export default function FinalAnalysis() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    positionChangePain: formData.positionChangePain,
-                    activityLevel: formData.activityLevel,
-                    legPain: formData.legPain,
-                    painTime: formData.painTime,
+                    position_change_pain: formData.position_change_pain,
+                    activity_level: formData.activity_level,
+                    leg_pain: formData.leg_pain,
+                    pain_time: formData.pain_time,
                     accidents: formData.accidents,
-                    bowelBladder: formData.bowelBladder,
+                    bowel_bladder: formData.bowel_bladder,
                     fever: formData.fever
                 }),
             });
@@ -104,7 +104,18 @@ export default function FinalAnalysis() {
                 if (response.status === 422) {
                     throw new Error('Invalid form data. Please check your inputs and try again.');
                 }
-                throw new Error(data.detail || 'An error occurred while processing your request');
+                
+                // Handle empty response
+                if (!data || Object.keys(data).length === 0) {
+                    throw new Error('Server returned an empty response. Please try again later.');
+                }
+                
+                // Handle specific error messages
+                if (data.detail) {
+                    throw new Error(data.detail);
+                }
+                
+                throw new Error(`Server error (${response.status}): ${response.statusText}`);
             }
 
             // Handle successful response
@@ -146,8 +157,8 @@ export default function FinalAnalysis() {
                             <div className="space-y-4">
                                 <Label>Does your position change pain?</Label>
                                 <RadioGroup
-                                    onValueChange={(value) => handleChange('positionChangePain', value)}
-                                    value={formData.positionChangePain}
+                                    onValueChange={(value) => handleChange('position_change_pain', value)}
+                                    value={formData.position_change_pain}
                                 >
                                     <div className="flex items-center space-x-2">
                                         <RadioGroupItem value={POSITION_CHANGE_PAIN.NO_PAIN} id="position-no-pain" />
@@ -168,8 +179,8 @@ export default function FinalAnalysis() {
                             <div className="space-y-4">
                                 <Label>How active have you been in the past 3 days?</Label>
                                 <RadioGroup
-                                    onValueChange={(value) => handleChange('activityLevel', value)}
-                                    value={formData.activityLevel}
+                                    onValueChange={(value) => handleChange('activity_level', value)}
+                                    value={formData.activity_level}
                                 >
                                     <div className="flex items-center space-x-2">
                                         <RadioGroupItem value={ACTIVITY_LEVEL.NONE} id="activity-none" />
@@ -194,8 +205,8 @@ export default function FinalAnalysis() {
                             <div className="space-y-4">
                                 <Label>Any pain down in your leg? (hip as well)</Label>
                                 <RadioGroup
-                                    onValueChange={(value) => handleChange('legPain', value)}
-                                    value={formData.legPain}
+                                    onValueChange={(value) => handleChange('leg_pain', value)}
+                                    value={formData.leg_pain}
                                 >
                                     <div className="flex items-center space-x-2">
                                         <RadioGroupItem value="yes" id="leg-yes" />
@@ -212,8 +223,8 @@ export default function FinalAnalysis() {
                             <div className="space-y-4">
                                 <Label>Is pain worse in the AM or PM?</Label>
                                 <RadioGroup
-                                    onValueChange={(value) => handleChange('painTime', value)}
-                                    value={formData.painTime}
+                                    onValueChange={(value) => handleChange('pain_time', value)}
+                                    value={formData.pain_time}
                                 >
                                     <div className="flex items-center space-x-2">
                                         <RadioGroupItem value={PAIN_TIME.AM} id="time-am" />
@@ -248,8 +259,8 @@ export default function FinalAnalysis() {
                             <div className="space-y-4">
                                 <Label>Any change in bowel or bladder function?</Label>
                                 <RadioGroup
-                                    onValueChange={(value) => handleChange('bowelBladder', value)}
-                                    value={formData.bowelBladder}
+                                    onValueChange={(value) => handleChange('bowel_bladder', value)}
+                                    value={formData.bowel_bladder}
                                 >
                                     <div className="flex items-center space-x-2">
                                         <RadioGroupItem value="yes" id="bowel-yes" />
