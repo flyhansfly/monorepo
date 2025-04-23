@@ -1,7 +1,7 @@
 services:
   - type: web
     name: pt-dr-ray-backend
-    env: python
+    runtime: python
     rootDir: backend
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
@@ -14,7 +14,7 @@ services:
 
   - type: web
     name: pt-dr-ray-frontend
-    env: node
+    runtime: node
     rootDir: frontend
     buildCommand: npm install && npm run build
     startCommand: npm start
