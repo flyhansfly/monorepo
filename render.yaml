@@ -1,9 +1,9 @@
 services:
   - type: web
     name: pt-dr-ray-backend
-    runtime: python3
+    runtime: python
     rootDir: ./backend
-    buildCommand: pip install -r 'requirements.txt'
+    buildCommand: pip install -r requirements.txt
     startCommand: python3 -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: OPENAI_API_KEY
@@ -21,4 +21,4 @@ services:
     envVars:
       - key: NEXT_PUBLIC_API_URL
         value: https://pt-dr-ray-backend.onrender.com
-    plan: free 
+    plan: free
