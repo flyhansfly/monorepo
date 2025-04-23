@@ -2,8 +2,9 @@ services:
   - type: web
     name: pt-dr-ray-backend
     env: python
-    buildCommand: python3 -m pip install --upgrade pip && python3 -m pip install -r /opt/render/project/src/backend/requirements.txt
-    startCommand: uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: OPENAI_API_KEY
         sync: false
@@ -14,8 +15,9 @@ services:
   - type: web
     name: pt-dr-ray-frontend
     env: node
-    buildCommand: cd frontend && npm install && npm run build
-    startCommand: cd frontend && npm start
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm start
     envVars:
       - key: NEXT_PUBLIC_API_URL
         value: https://pt-dr-ray-backend.onrender.com
