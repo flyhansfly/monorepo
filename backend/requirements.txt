@@ -1,9 +1,16 @@
 fastapi==0.109.2
 uvicorn==0.27.1
 pydantic==2.6.1
+pydantic-settings==2.1.0
 python-dotenv==1.0.1
 openai==1.12.0
 python-multipart==0.0.9
 requests>=2.31.0
 langchain==0.1.9
 langchain-community==0.0.27
+typing-extensions>=4.9.0
+uuid>=1.30
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+python-dateutil>=2.8.2
+aiohttp>=3.9.1
