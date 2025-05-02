@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import intake_analysis, patient_story, final_analysis  # Added final_analysis import
+from app.api import intake_analysis, final_analysis, treatment_plan
 
 app = FastAPI()
 
@@ -13,10 +13,10 @@ app.add_middleware(
 
 app.include_router(intake_analysis.router,
                    prefix="/api/intake_analysis", tags=["Intake Analysis"])
-app.include_router(patient_story.router,
-                   prefix="/api/patient_story", tags=["Patient Story"])
 app.include_router(final_analysis.router,
-                   prefix="/api", tags=["Final Analysis"])  # Added final_analysis router
+                   prefix="/api", tags=["Final Analysis"])
+app.include_router(treatment_plan.router,
+                   prefix="/api", tags=["Treatment Plan"])
 
 @app.get("/")
 def read_root():

@@ -1,21 +1,17 @@
 # Import required modules and libraries
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, ValidationError
-from typing import List, Optional
-from langchain.prompts import PromptTemplate
-from langchain_openai import ChatOpenAI
+from pydantic import BaseModel, ValidationError, validator
+from typing import List
 from langchain.output_parsers import PydanticOutputParser
 import logging
 import traceback
 from langchain.globals import set_llm_cache
 from langchain.cache import InMemoryCache
-from app.models.final_analysis import FinalAnalysisFormData, FinalAnalysisResult, BaseDiagnosis, BigMuscleGroup, TreatmentRecommendation
 from app.prompts.final_analysis_prompt import FINAL_ANALYSIS_PROMPT
 import json
 import os
 import datetime
 from app.core.llm import llm_service
-from app.models.final_analysis import PositionChangePain
 
 # Set up logging
 logging.basicConfig(level=logging.INFO,
@@ -25,25 +21,46 @@ logger = logging.getLogger(__name__)
 # Set up the data directory relative to this file's location.
 DATA_DIR = os.path.join(os.path.dirname(__file__), '../../../data/raw')
 os.makedirs(DATA_DIR, exist_ok=True)
-FILE_PATH = os.path.join(DATA_DIR, "final_analysis_responses.jsonl")
+FILE_PATH = os.path.join(DATA_DIR, "treatment_plans.jsonl")
 
-def store_analysis_result(form_data, analysis_result, session_id):
+class Exercise(BaseModel):
+    type: str = "Exercise"
+    name: str
+    description: str
+    sets: str
+    reps: str
+    frequency: str
+    duration: str = "1 week"
+    precautions: str
+
+class TreatmentPlan(BaseModel):
+    treatment_focus: str  # pain, mobility, or strength
+    treatment_recommendations: List[Exercise]
+    reasoning: str
+    next_phase_focus: str
+
+    @validator('treatment_recommendations')
+    def validate_exercises(cls, v):
+        if len(v) != 3:
+            raise ValueError("Treatment plan must contain exactly 3 exercises")
+        return v
+
+def store_treatment_plan(treatment_plan, session_id):
     """
-    Save the analysis result along with the form data and session info to a JSONL file.
+    Save the treatment plan along with session info to a JSONL file.
     """
     try:
         record = {
             "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
             "session_id": session_id,
-            "form_data": form_data,
-            "analysis_result": analysis_result.dict(),
+            "treatment_plan": treatment_plan.dict(),
             "source": "user_generated"
         }
         with open(FILE_PATH, "a") as f:
             f.write(json.dumps(record) + "\n")
-        logger.info(f"Successfully stored analysis result for session {session_id}")
+        logger.info(f"Successfully stored treatment plan for session {session_id}")
     except Exception as e:
-        logger.error(f"Error storing analysis result: {str(e)}")
+        logger.error(f"Error storing treatment plan: {str(e)}")
         logger.error(traceback.format_exc())
 
 # Initialize FastAPI router
@@ -56,28 +73,29 @@ set_llm_cache(InMemoryCache())
 @router.get("/health")
 async def health_check():
     """
-    Health check endpoint for the final analysis API.
+    Health check endpoint for the treatment planning API.
     """
-    return {"status": "ok", "service": "final-analysis"}
+    return {"status": "ok", "service": "treatment-planning"}
 
-# Instantiate the Pydantic parser for FinalAnalysisResult
-result_parser = PydanticOutputParser(pydantic_object=FinalAnalysisResult)
+# Instantiate the Pydantic parser for TreatmentPlan
+result_parser = PydanticOutputParser(pydantic_object=TreatmentPlan)
 
-# Define the API endpoint for processing final analysis
-@router.post("/final-analysis", response_model=FinalAnalysisResult)
-async def analyze_final_form(data: FinalAnalysisFormData):
-    logger.info("Received request to analyze final form.")
+# Define the API endpoint for generating treatment plan
+@router.post("/treatment-plan", response_model=TreatmentPlan)
+async def generate_treatment_plan():
+    logger.info("Received request to generate treatment plan.")
     try:
-        # Convert Pydantic model to dict
-        input_data = data.dict()
-        logger.info(f"Input Data: {input_data}")
-
         # Get the intake analysis result from the atom
         try:
             from app.core.atoms import get_intake_analysis_result
             intake_analysis = get_intake_analysis_result()
-            if intake_analysis:
-                formatted_intake_analysis = f"""
+            if not intake_analysis:
+                raise HTTPException(
+                    status_code=400,
+                    detail="No intake analysis available. Please complete the intake form first."
+                )
+
+            formatted_intake_analysis = f"""
 Previous Diagnosis: {intake_analysis.main_diagnosis.diagnosis}
 ICD-10 Code: {intake_analysis.main_diagnosis.icd10_code}
 Explanation: {intake_analysis.main_diagnosis.simple_explanation}
@@ -90,45 +108,39 @@ Other Possible Diagnoses:
 
 Clinical Reasoning: {intake_analysis.reasoning}
 """
-            else:
-                formatted_intake_analysis = "No previous intake analysis available."
         except Exception as e:
             logger.error(f"Error getting intake analysis: {str(e)}")
-            formatted_intake_analysis = "Error retrieving previous intake analysis."
+            raise HTTPException(
+                status_code=500,
+                detail="Error retrieving intake analysis"
+            )
 
         # Format the input data for the LLM
         formatted_input = {
-            "intake_analysis": formatted_intake_analysis,
-            "position_change_pain": input_data["position_change_pain"],
-            "activity_level": input_data["activity_level"],
-            "leg_pain": input_data["leg_pain"],
-            "pain_time": input_data["pain_time"],
-            "accidents": input_data["accidents"],
-            "bowel_bladder": input_data["bowel_bladder"],
-            "fever": input_data["fever"]
+            "intake_analysis": formatted_intake_analysis
         }
 
         logger.info("Calling LLM service...")
-        # Get the analysis result from the LLM
+        # Get the treatment plan from the LLM
         try:
-            analysis_result = llm_service.generate_response(
+            treatment_plan = llm_service.generate_response(
                 prompt_template=FINAL_ANALYSIS_PROMPT,
                 input_variables=formatted_input,
                 output_parser=result_parser
             )
             
             # Validate the result
-            if not analysis_result.main_diagnosis:
-                raise ValueError("LLM response missing main_diagnosis field")
-            if not analysis_result.big_muscle_group:
-                raise ValueError("LLM response missing big_muscle_group field")
-            if not analysis_result.treatment_recommendations:
+            if not treatment_plan.treatment_recommendations:
                 raise ValueError("LLM response missing treatment_recommendations field")
+            if not treatment_plan.treatment_focus in ["pain", "mobility", "strength"]:
+                raise ValueError("Invalid treatment focus. Must be one of: pain, mobility, strength")
+            if len(treatment_plan.treatment_recommendations) != 3:
+                raise ValueError("Treatment plan must contain exactly 3 exercises")
             
             # Store the result
-            store_analysis_result(input_data, analysis_result, "session_id")
+            store_treatment_plan(treatment_plan, "session_id")
 
-            return analysis_result
+            return treatment_plan
             
         except ValueError as ve:
             logger.error(f"Validation error in LLM response: {str(ve)}")
@@ -141,7 +153,7 @@ Clinical Reasoning: {intake_analysis.reasoning}
             logger.error(traceback.format_exc())
             raise HTTPException(
                 status_code=500,
-                detail=f"Error generating analysis: {str(e)}"
+                detail=f"Error generating treatment plan: {str(e)}"
             )
 
     except ValidationError as e:
@@ -151,6 +163,6 @@ Clinical Reasoning: {intake_analysis.reasoning}
         logger.error(f"Value error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
-        logger.error(f"Error processing final analysis: {str(e)}")
+        logger.error(f"Error processing treatment plan: {str(e)}")
         logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e)) 

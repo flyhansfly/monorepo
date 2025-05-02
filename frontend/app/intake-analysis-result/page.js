@@ -12,23 +12,89 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAtom } from "jotai";
 import { intakeAnalysisResultAtom } from "../atoms/intakeAnalysisResultAtom";
-import { intakeDataAtom } from "../atoms/intakeDataAtom";
-import { patientStoryAtom } from "../atoms/patientStoryAtom";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 const IntakeAnalysisResultPage = () => {
 	const [analysisResult] = useAtom(intakeAnalysisResultAtom);
-	const [intakeData] = useAtom(intakeDataAtom);
 	const router = useRouter();
-	const [loading, setLoading] = useState(false);
-	const [patientStory, setPatientStory] = useAtom(patientStoryAtom);
+	const [feedback, setFeedback] = useState("");
+	const [isSubmitting, setIsSubmitting] = useState(false);
+
+	// Add logging to debug state
+	console.log("Intake Analysis Result Page - Current state:", analysisResult);
+
+	// Add useEffect to handle navigation if no result
+	useEffect(() => {
+		if (!analysisResult) {
+			console.log("No analysis result found, redirecting to intake form...");
+			router.push("/intake-form");
+		}
+	}, [analysisResult, router]);
+
+	const handleProceedToTreatment = async () => {
+		if (!feedback.trim()) {
+			alert("Please provide your email or feedback to proceed to the detailed treatment plan.");
+			return;
+		}
+
+		setIsSubmitting(true);
+		try {
+			// Log the analysis result to debug
+			console.log("Analysis Result:", analysisResult);
+
+			// Get session ID from analysis result
+			const sessionId = analysisResult?.session_id;
+			if (!sessionId) {
+				throw new Error("No session ID found in analysis result");
+			}
+
+			// Log the data being sent
+			console.log("Sending feedback data:", {
+				feedback,
+				session_id: sessionId,
+				analysis_result: analysisResult
+			});
+
+			// Save feedback along with the analysis result and session ID
+			const response = await fetch("http://localhost:8000/api/intake_analysis/feedback", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					feedback,
+					session_id: sessionId,
+					analysis_result: analysisResult
+				}),
+			});
+
+			if (!response.ok) {
+				const errorData = await response.json();
+				throw new Error(errorData.detail?.error || "Failed to save feedback");
+			}
+
+			// Navigate to treatment plan with session ID
+			router.push(`/treatment-plan?session_id=${sessionId}`);
+		} catch (error) {
+			console.error("Error saving feedback:", error);
+			alert(error.message || "There was an error saving your feedback. Please try again.");
+		} finally {
+			setIsSubmitting(false);
+		}
+	};
 
 	if (!analysisResult) {
 		return (
 			<div className="max-w-4xl mx-auto p-8">
 				<h1 className="text-2xl font-bold">No Data Found</h1>
 				<p>Something went wrong. Please try submitting the form again.</p>
+				<Button 
+					onClick={() => router.push("/intake-form")}
+					className="mt-4"
+				>
+					Return to Intake Form
+				</Button>
 			</div>
 		);
 	}
@@ -39,31 +105,6 @@ const IntakeAnalysisResultPage = () => {
 		month: "long",
 		day: "numeric",
 	});
-
-	// Fetch Patient Story
-	const fetchPatientStory = async () => {
-		setLoading(true);
-		try {
-			const response = await fetch("http://localhost:8000/api/patient_story", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(intakeData),
-			});
-
-			if (!response.ok) {
-				throw new Error("Failed to fetch patient story");
-			}
-
-			const data = await response.json();
-			setPatientStory(data.story);
-			router.push("/final-analysis");
-		} catch (error) {
-			console.error("Error fetching patient story:", error);
-			alert("Unable to fetch the patient story. Please try again later.");
-		} finally {
-			setLoading(false);
-		}
-	};
 
 	return (
 		<main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
@@ -139,25 +180,18 @@ const IntakeAnalysisResultPage = () => {
 							</CardContent>
 						</Card>
 
-						{/* Big Muscle Group Involved */}
+						{/* Treatment Recommendations */}
 						<Card>
 							<CardHeader>
-								<CardTitle>Big Muscle Group Involved</CardTitle>
+								<CardTitle>Treatment Recommendations</CardTitle>
 							</CardHeader>
 							<CardContent>
-								<h3 className="text-base font-semibold">
-									{analysisResult.big_muscle_group.name}
-								</h3>
-								<p className="text-sm text-muted-foreground">
-									{analysisResult.big_muscle_group.description}
-								</p>
-								<p className="text-sm font-semibold mt-2">
-									Confidence:{" "}
-									{Math.round(
-										analysisResult.big_muscle_group.probability * 100
-									)}
-									%
-								</p>
+								{analysisResult.treatment_recommendations.map((item, idx) => (
+									<div key={idx} className="mb-3">
+										<h3 className="text-base font-semibold">{item.title}</h3>
+										<p className="text-sm text-muted-foreground">{item.description}</p>
+									</div>
+								))}
 							</CardContent>
 						</Card>
 					</div>
@@ -221,32 +255,50 @@ const IntakeAnalysisResultPage = () => {
 			</section>
 
 			{/* Footer */}
-			<footer className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
-				<div className="space-x-2">
-					<Button variant="default" size="sm">
-						<i className="fas fa-download mr-1"></i>
-						Download Report
-					</Button>
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={fetchPatientStory}
-						disabled={loading}
-					>
-						{loading ? (
-							"Loading..."
-						) : (
-							<>
-								<i className="fas fa-calendar-plus mr-1"></i>
-								Proceed to detailed questions
-							</>
-						)}
+			<footer className="flex flex-col gap-6">
+				{/* Feedback Section */}
+				<div className="bg-gray-50 p-6 rounded-lg">
+					<h3 className="text-lg font-semibold mb-4">Get Your Detailed Treatment Plan</h3>
+					<p className="text-sm text-gray-600 mb-4">
+						To access your detailed treatment plan for {analysisResult.main_diagnosis.diagnosis}, 
+						please provide your email or any feedback below.
+					</p>
+					<div className="space-y-4">
+						<div>
+							<Label htmlFor="feedback">Email or Feedback</Label>
+							<Textarea
+								id="feedback"
+								placeholder="Enter your email or any feedback..."
+								value={feedback}
+								onChange={(e) => setFeedback(e.target.value)}
+								className="mt-1"
+							/>
+						</div>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={handleProceedToTreatment}
+							disabled={isSubmitting}
+						>
+							<i className="fas fa-calendar-plus mr-1"></i>
+							{isSubmitting ? "Processing..." : "Proceed to detailed treatment plan"}
+						</Button>
+					</div>
+				</div>
+
+				{/* Action Buttons */}
+				<div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
+					<div className="space-x-2">
+						<Button variant="default" size="sm">
+							<i className="fas fa-download mr-1"></i>
+							Download Report
+						</Button>
+					</div>
+					<Button variant="ghost" size="sm">
+						<i className="fas fa-notes-medical mr-1"></i>
+						Add Notes
 					</Button>
 				</div>
-				<Button variant="ghost" size="sm">
-					<i className="fas fa-notes-medical mr-1"></i>
-					Add Notes
-				</Button>
 			</footer>
 		</main>
 	);

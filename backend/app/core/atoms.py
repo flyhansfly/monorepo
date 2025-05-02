@@ -1,5 +1,5 @@
 from typing import Optional
-from app.models.final_analysis import AnalysisResult
+from app.models.intake import AnalysisResult
 
 # Simple in-memory storage for the intake analysis result
 _intake_analysis_result: Optional[AnalysisResult] = None
