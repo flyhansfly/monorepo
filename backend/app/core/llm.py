@@ -6,9 +6,12 @@ from langchain.output_parsers import PydanticOutputParser
 import os
 import json
 import re
+import langchain, pydantic
 import logging
 
 logger = logging.getLogger(__name__)
+logger.info(f"LangChain v{langchain.__version__}, Pydantic v{pydantic.__version__}")
+
 
 class LLMService:
     def __init__(self):
@@ -19,7 +22,7 @@ class LLMService:
 
         # Initialize the OpenAI chat model
         self.chat_model = ChatOpenAI(
-            model=settings.LLM_MODEL_NAME,
+            model_name=settings.LLM_MODEL_NAME,
             openai_api_key=api_key,
             max_tokens=settings.MAX_TOKENS,
             temperature=settings.TEMPERATURE,
