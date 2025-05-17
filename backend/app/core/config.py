@@ -4,7 +4,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
-env_path = Path(__file__).parent.parent.parent.parent / ".env"
+env_path = Path(__file__).parent.parent.parent / ".env"
 load_dotenv(env_path)
 
 class Settings(BaseSettings):
