@@ -1,1 +1,5 @@
-{}
+{
+  "dependencies": {
+    "recoil": "^0.7.7"
+  }
+}
