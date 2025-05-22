@@ -1,12 +1,12 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
-from app.core.llm import llm_service
-from app.models.treatment_plan import TreatmentPlan
-from app.prompts.treatment_plan_prompt import TREATMENT_PLAN_PROMPT
+from backend.app.core.llm import llm_service
+from backend.app.models.treatment_plan import TreatmentPlan
+from backend.app.prompts.treatment_plan_prompt import TREATMENT_PLAN_PROMPT
 import logging
 import json
-from app.api.intake_analysis import store_treatment_plan
+from backend.app.api.intake_analysis import store_treatment_plan
 from langchain.output_parsers import PydanticOutputParser
 
 # Configure logging

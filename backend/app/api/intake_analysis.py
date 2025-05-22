@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
-from app.models.intake import IntakeFormData, AnalysisResult
-from app.core.llm import llm_service
-from app.prompts.intake_analysis_prompt import INTAKE_ANALYSIS_PROMPT
+from backend.app.models.intake import IntakeFormData, AnalysisResult
+from backend.app.core.llm import llm_service
+from backend.app.prompts.intake_analysis_prompt import INTAKE_ANALYSIS_PROMPT
 from langchain.output_parsers import PydanticOutputParser
 import logging
 from langchain.globals import set_llm_cache
