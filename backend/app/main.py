@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import intake_analysis, final_analysis, treatment_plan
+from backend.app.api import intake_analysis, final_analysis, treatment_plan
+
 
 app = FastAPI()
 
