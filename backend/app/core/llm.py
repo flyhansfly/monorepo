@@ -1,7 +1,7 @@
 from langchain_community.chat_models import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 from langchain.schema import HumanMessage
-from app.core.config import settings
+from backend.app.core.config import settings
 from langchain.output_parsers import PydanticOutputParser
 import os
 import json
