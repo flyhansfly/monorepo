@@ -1,6 +1,5 @@
 'use client';
 
-// force this page to be rendered dynamically at runtime
 export const dynamic = 'force-dynamic';
 
 import { useAtom } from 'jotai';
@@ -13,8 +12,8 @@ const TreatmentPlanPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [treatmentPlan, setTreatmentPlan] = useState<any>(null);
+  const [error, setError] = useState(null);
+  const [treatmentPlan, setTreatmentPlan] = useState(null);
 
   useEffect(() => {
     const generateTreatmentPlan = async () => {
@@ -36,7 +35,7 @@ const TreatmentPlanPage = () => {
 
         const data = await response.json();
         setTreatmentPlan(data);
-      } catch (err: any) {
+      } catch (err) {
         console.error('Error generating treatment plan:', err);
         setError(err.message);
       } finally {
@@ -62,12 +61,18 @@ const TreatmentPlanPage = () => {
       <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-2xl font-bold text-red-600 mb-4">Error</h1>
-          <p className="text-gray-600 mb-4">{error}</p>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <button
+            onClick={() => router.refresh()}
+            className="mr-4 px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+          >
+            Regenerate
+          </button>
           <button
             onClick={() => router.push('/intake-form')}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
-            Return to Intake Form
+            Start Over
           </button>
         </div>
       </div>
@@ -88,23 +93,22 @@ const TreatmentPlanPage = () => {
           </p>
         </div>
 
-        <TreatmentPlan treatmentPlan={treatmentPlan} />
-
-        {/* action buttons */}
-        <div className="mt-6 flex justify-end space-x-2">
+        <div className="flex justify-end mb-4 space-x-2">
           <button
-            onClick={() => {/* TODO: handle edit action */}}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            onClick={() => router.refresh()}
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
           >
-            Edit Plan
+            Refresh Plan
           </button>
           <button
-            onClick={() => {/* TODO: handle export action */}}
-            className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+            onClick={() => router.push('/intake-form')}
+            className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
           >
-            Export PDF
+            New Assessment
           </button>
         </div>
+
+        <TreatmentPlan treatmentPlan={treatmentPlan} />
       </div>
     </div>
   );
