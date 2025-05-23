@@ -1,7 +1,7 @@
 'use client';
-// force this page to always be fully client-rendered
-export const dynamic = 'force-dynamic';
-// disable any ISR / static regeneration
+
+// disable static prerender / ISR for this route
+export const dynamic    = 'force-dynamic';
 export const revalidate = 0;
 
 import { useRouter, useSearchParams } from 'next/navigation';
