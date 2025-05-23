@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "heroku-postbuild": "cd frontend && npm install && npm run build"
+  },
   "dependencies": {
     "recoil": "^0.7.7"
   }
