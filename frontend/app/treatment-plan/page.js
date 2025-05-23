@@ -1,8 +1,8 @@
-'use client';
-
-// disable static prerender / ISR for this route
+// disable any ISR / static prerender for this route
 export const dynamic    = 'force-dynamic';
 export const revalidate = 0;
+
+'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -12,8 +12,8 @@ const TreatmentPlanPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [treatmentPlan, setTreatmentPlan] = useState(null);
+  const [error, setError] = useState<string | null>(null);
+  const [treatmentPlan, setTreatmentPlan] = useState<any>(null);
 
   useEffect(() => {
     const generateTreatmentPlan = async () => {
@@ -26,11 +26,12 @@ const TreatmentPlanPage = () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ session_id: sessionId }),
         });
+
         if (!res.ok) throw new Error('Failed to generate treatment plan');
 
         const data = await res.json();
         setTreatmentPlan(data);
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error generating treatment plan:', err);
         setError(err.message);
       } finally {
@@ -43,29 +44,25 @@ const TreatmentPlanPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Loading treatment plan…</p>
+      <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto text-center">
+          <p>Loading treatment plan...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center space-y-4">
-        <h1 className="text-xl font-bold text-red-600">Error</h1>
-        <p>{error}</p>
-        <div className="space-x-2">
-          <button
-            onClick={() => router.refresh()}
-            className="px-4 py-2 bg-yellow-500 text-white rounded"
-          >
-            Retry
-          </button>
+      <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Error</h1>
+          <p className="text-gray-600 mb-4">{error}</p>
           <button
             onClick={() => router.push('/intake-form')}
-            className="px-4 py-2 bg-blue-600 text-white rounded"
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
-            New Assessment
+            Return to Intake Form
           </button>
         </div>
       </div>
@@ -73,27 +70,15 @@ const TreatmentPlanPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
+    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
-        <div className="flex justify-end mb-4 space-x-2">
-          <button
-            onClick={() => router.refresh()}
-            className="px-4 py-2 bg-green-600 text-white rounded"
-          >
-            Refresh
-          </button>
-          <button
-            onClick={() => router.push('/intake-form')}
-            className="px-4 py-2 bg-indigo-600 text-white rounded"
-          >
-            New Assessment
-          </button>
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Treatment Plan</h1>
+          <p className="text-lg text-gray-600">
+            Based on your assessment, here is your personalized treatment plan
+          </p>
         </div>
-        <h1 className="text-3xl font-bold mb-2">Treatment Plan</h1>
-        <p className="mb-6 text-gray-600">
-          Based on your assessment, here is your personalized treatment plan.
-        </p>
-        <TreatmentPlan treatmentPlan={treatmentPlan} />
+        {treatmentPlan && <TreatmentPlan treatmentPlan={treatmentPlan} />}
       </div>
     </div>
   );
