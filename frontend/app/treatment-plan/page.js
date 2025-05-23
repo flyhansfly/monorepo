@@ -1,5 +1,4 @@
 'use client';
-
 // force this page to always be fully client-rendered
 export const dynamic = 'force-dynamic';
 // disable any ISR / static regeneration
