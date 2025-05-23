@@ -1,6 +1,8 @@
 'use client';
 
+// force this page to always be fully client‐rendered
 export const dynamic = 'force-dynamic';
+// disable any ISR / static regeneration
 export const revalidate = 0;
 
 import { useAtom } from 'jotai';
@@ -42,7 +44,7 @@ const TreatmentPlanPage = () => {
     generateTreatmentPlan();
   }, [searchParams]);
 
-  if (isLoading)
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
@@ -50,8 +52,9 @@ const TreatmentPlanPage = () => {
         </div>
       </div>
     );
+  }
 
-  if (error)
+  if (error) {
     return (
       <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
@@ -72,6 +75,7 @@ const TreatmentPlanPage = () => {
         </div>
       </div>
     );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
