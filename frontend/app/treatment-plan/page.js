@@ -1,6 +1,7 @@
 'use client';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 import { useAtom } from 'jotai';
 import { treatmentPlanAtom } from '../atoms/treatmentPlanAtom';
@@ -19,19 +20,14 @@ const TreatmentPlanPage = () => {
     const generateTreatmentPlan = async () => {
       try {
         const sessionId = searchParams.get('session_id');
-        if (!sessionId) {
-          throw new Error('No session ID found');
-        }
+        if (!sessionId) throw new Error('No session ID found');
 
         const response = await fetch('/api/treatment_plan', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ session_id: sessionId }),
         });
-
-        if (!response.ok) {
-          throw new Error('Failed to generate treatment plan');
-        }
+        if (!response.ok) throw new Error('Failed to generate treatment plan');
 
         const data = await response.json();
         setTreatmentPlan(data);
@@ -46,7 +42,7 @@ const TreatmentPlanPage = () => {
     generateTreatmentPlan();
   }, [searchParams]);
 
-  if (isLoading) {
+  if (isLoading)
     return (
       <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
@@ -54,9 +50,8 @@ const TreatmentPlanPage = () => {
         </div>
       </div>
     );
-  }
 
-  if (error) {
+  if (error)
     return (
       <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
@@ -77,11 +72,6 @@ const TreatmentPlanPage = () => {
         </div>
       </div>
     );
-  }
-
-  if (!treatmentPlan) {
-    return null;
-  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
