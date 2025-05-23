@@ -12,8 +12,8 @@ const TreatmentPlanPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [treatmentPlan, setTreatmentPlan] = useState<any>(null);
+  const [error, setError] = useState(null);
+  const [treatmentPlan, setTreatmentPlan] = useState(null);
 
   useEffect(() => {
     const generateTreatmentPlan = async () => {
@@ -31,7 +31,7 @@ const TreatmentPlanPage = () => {
 
         const data = await res.json();
         setTreatmentPlan(data);
-      } catch (err: any) {
+      } catch (err) {
         console.error('Error generating treatment plan:', err);
         setError(err.message);
       } finally {
