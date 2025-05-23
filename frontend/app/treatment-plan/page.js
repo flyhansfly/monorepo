@@ -1,9 +1,9 @@
+'use client';
+
 // force this page to always be fully client-rendered
 export const dynamic = 'force-dynamic';
 // disable any ISR / static regeneration
 export const revalidate = 0;
-
-'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -38,6 +38,7 @@ const TreatmentPlanPage = () => {
         setIsLoading(false);
       }
     };
+
     generateTreatmentPlan();
   }, [searchParams]);
 
