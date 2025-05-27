@@ -59,7 +59,7 @@ const IntakeAnalysisResultPage = () => {
 			});
 
 			// Save feedback along with the analysis result and session ID
-			const response = await fetch("http://localhost:8000/api/intake_analysis/feedback", {
+			const response = await fetch("/api/intake_analysis/feedback", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({

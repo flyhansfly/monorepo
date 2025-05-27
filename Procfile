@@ -1,1 +1,1 @@
-web: sh -c "npm --prefix frontend run start & uvicorn backend.app.main:app --host 0.0.0.0 --port ${PORT}"
+web: sh -c "npm --prefix frontend run start & gunicorn -k uvicorn.workers.UvicornWorker -w 2 backend.app.main:app"

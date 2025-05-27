@@ -86,7 +86,7 @@ const IntakeFormPage = () => {
 			console.log("Form data before submission:", data);
 			console.log("Processed data being sent to server:", formData);
 
-			const response = await fetch("http://localhost:8000/api/intake_analysis", {
+			const response = await fetch("/api/intake_analysis", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(formData),
