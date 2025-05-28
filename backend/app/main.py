@@ -2,6 +2,8 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .core.database import init_db, close_db, database
+from .core.logging import logger, log_event
+from .core.redis import redis_client
 from backend.app.api import intake_analysis, final_analysis, treatment_plan
 
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -36,8 +38,16 @@ def read_root():
 
 @app.on_event("startup")
 async def startup():
+    log_event("app_startup", message="Starting application")
     await init_db()
+    if redis_client:
+        log_event("redis_connected", message="Redis connection established")
+    log_event("app_startup_complete", message="Application startup complete")
 
 @app.on_event("shutdown")
 async def shutdown():
+    log_event("app_shutdown", message="Shutting down application")
     await close_db()
+    if redis_client:
+        redis_client.close()
+    log_event("app_shutdown_complete", message="Application shutdown complete")
