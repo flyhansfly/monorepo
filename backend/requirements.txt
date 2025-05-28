@@ -14,7 +14,7 @@ charset-normalizer==3.4.1
 click==8.1.8
 comm==0.2.2
 cryptography==44.0.3
-databases==0.9.0
+databases[postgresql]==0.9.0
 dataclasses-json==0.6.7
 debugpy==1.8.6
 decorator==5.1.1
@@ -122,4 +122,4 @@ zstandard==0.23.0
 gunicorn==21.2.0
 redis==5.0.1
 alembic==1.13.1
-psycopg2-binary==2.9.9
+structlog==24.0.0
