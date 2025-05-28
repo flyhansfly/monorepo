@@ -7,11 +7,11 @@ import logging
 import traceback
 from langchain.globals import set_llm_cache
 from langchain.cache import InMemoryCache
-from backend.app.prompts.final_analysis_prompt import FINAL_ANALYSIS_PROMPT
+from ..prompts.final_analysis_prompt import FINAL_ANALYSIS_PROMPT
 import json
 import os
 import datetime
-from backend.app.core.llm import llm_service
+from ..core.llm import llm_service
 
 # Set up logging
 logging.basicConfig(level=logging.INFO,

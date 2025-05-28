@@ -1,14 +1,14 @@
 from fastapi import APIRouter, HTTPException, Depends
-from backend.app.models.intake import IntakeFormData, AnalysisResult
-from backend.app.core.llm import llm_service
-from backend.app.prompts.intake_analysis_prompt import INTAKE_ANALYSIS_PROMPT
+from ..models.intake import IntakeFormData, AnalysisResult
+from ..core.llm import llm_service
+from ..prompts.intake_analysis_prompt import INTAKE_ANALYSIS_PROMPT
 from langchain.output_parsers import PydanticOutputParser
 import logging
 from langchain.globals import set_llm_cache
 from langchain.cache import InMemoryCache
-from backend.app.api.session_store import session_store
+from .session_store import session_store
 from sqlalchemy.orm import Session
-from ..core.database import get_db, database
+from ..core.database import get_db
 from ..models.database import Session as SessionModel, LLMLog
 
 import os

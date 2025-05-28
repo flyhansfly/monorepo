@@ -1,16 +1,16 @@
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List, Optional
-from backend.app.core.llm import llm_service
-from backend.app.models.treatment_plan import TreatmentPlan
-from backend.app.prompts.treatment_plan_prompt import TREATMENT_PLAN_PROMPT
+from ..core.llm import llm_service
+from ..models.treatment_plan import TreatmentPlan
+from ..prompts.treatment_plan_prompt import TREATMENT_PLAN_PROMPT
 import logging
 import json
-from backend.app.api.intake_analysis import store_treatment_plan
+from .intake_analysis import store_treatment_plan
 from langchain.output_parsers import PydanticOutputParser
-from backend.app.api.session_store import session_store
+from .session_store import session_store
 from sqlalchemy.orm import Session
-from ..core.database import get_db, database
+from ..core.database import get_db
 from ..models.database import Session as SessionModel, LLMLog
 
 # Configure logging
