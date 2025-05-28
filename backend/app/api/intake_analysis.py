@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from backend.app.models.intake import IntakeFormData, AnalysisResult
 from backend.app.core.llm import llm_service
 from backend.app.prompts.intake_analysis_prompt import INTAKE_ANALYSIS_PROMPT
@@ -6,6 +6,10 @@ from langchain.output_parsers import PydanticOutputParser
 import logging
 from langchain.globals import set_llm_cache
 from langchain.cache import InMemoryCache
+from backend.app.api.session_store import session_store
+from sqlalchemy.orm import Session
+from ..core.database import get_db, database
+from ..models.database import Session as SessionModel, LLMLog
 
 import os
 import datetime
@@ -79,7 +83,7 @@ analysis_result_parser = PydanticOutputParser(pydantic_object=AnalysisResult)
 
 
 @router.post("/", response_model=AnalysisResult)
-async def analyze_intake_form(data: IntakeFormData):
+async def analyze_intake_form(data: IntakeFormData, db: Session = Depends(get_db)):
     logger.info("Received request to analyze intake form.")
     try:
         # Log the raw input data
@@ -112,8 +116,24 @@ async def analyze_intake_form(data: IntakeFormData):
             )
             logger.info(f"LLM Response: {response}")
 
-            # Store the result to the designated file for training purposes
-            store_analysis_result(validated_data, response, session_id)
+            # Store the result in the database
+            session = SessionModel(
+                session_id=session_id,
+                analysis=response.dict()
+            )
+            db.add(session)
+            
+            # Log the LLM interaction
+            llm_log = LLMLog(
+                session_id=session_id,
+                step="intake_analysis",
+                payload={
+                    "input": validated_data,
+                    "output": response.dict()
+                }
+            )
+            db.add(llm_log)
+            db.commit()
             
             # Convert response to dict and add session_id
             response_dict = response.dict()

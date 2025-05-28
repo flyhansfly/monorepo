@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from .core.database import init_db, close_db
 from backend.app.api import intake_analysis, final_analysis, treatment_plan
 
 
@@ -28,3 +29,11 @@ app.include_router(treatment_plan.router,
 @app.get("/")
 def read_root():
     return {"message": "Welcome to Remap PT"}
+
+@app.on_event("startup")
+async def startup():
+    await init_db()
+
+@app.on_event("shutdown")
+async def shutdown():
+    await close_db()

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List, Optional
 from backend.app.core.llm import llm_service
@@ -8,6 +8,10 @@ import logging
 import json
 from backend.app.api.intake_analysis import store_treatment_plan
 from langchain.output_parsers import PydanticOutputParser
+from backend.app.api.session_store import session_store
+from sqlalchemy.orm import Session
+from ..core.database import get_db, database
+from ..models.database import Session as SessionModel, LLMLog
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -19,12 +23,20 @@ class TreatmentPlanRequest(BaseModel):
     session_id: str
 
 @router.post("/treatment_plan", response_model=TreatmentPlan)
-async def generate_treatment_plan(request: TreatmentPlanRequest):
+async def generate_treatment_plan(request: TreatmentPlanRequest, db: Session = Depends(get_db)):
     """
     Generate a treatment plan based on the analysis result.
     """
     try:
         logger.info(f"Generating treatment plan for session {request.session_id}")
+        
+        # Fetch the session data from the database
+        session_data = db.query(SessionModel).filter(SessionModel.session_id == request.session_id).first()
+        if not session_data:
+            logger.error(f"No session found for ID: {request.session_id}")
+            raise HTTPException(status_code=404, detail="No analysis found for that session")
+        
+        analysis = session_data.analysis
         
         # Create output parser for TreatmentPlan
         output_parser = PydanticOutputParser(pydantic_object=TreatmentPlan)
@@ -35,6 +47,18 @@ async def generate_treatment_plan(request: TreatmentPlanRequest):
             input_variables={"session_id": request.session_id},
             output_parser=output_parser
         )
+        
+        # Log the LLM interaction
+        llm_log = LLMLog(
+            session_id=request.session_id,
+            step="treatment_plan",
+            payload={
+                "input": {"session_id": request.session_id},
+                "output": response.dict()
+            }
+        )
+        db.add(llm_log)
+        db.commit()
         
         # Store the treatment plan
         store_treatment_plan(response, request.session_id)
@@ -70,6 +94,18 @@ async def generate_treatment_plan(request: TreatmentPlanRequest):
             reasoning="Initial treatment plan focusing on core stability and proper posture to address the muscle strain.",
             next_phase_focus="progressive strengthening"
         )
+        
+        # Log the fallback plan
+        llm_log = LLMLog(
+            session_id=request.session_id,
+            step="treatment_plan_fallback",
+            payload={
+                "error": str(e),
+                "fallback_plan": treatment_plan.dict()
+            }
+        )
+        db.add(llm_log)
+        db.commit()
         
         # Store the default treatment plan
         store_treatment_plan(treatment_plan, request.session_id)
