@@ -4,7 +4,9 @@ from sqlalchemy.orm import sessionmaker
 from databases import Database
 from ..models.database import Base
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://localhost/remap_pt")
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise RuntimeError("🛑 DATABASE_URL not set")
 
 # Create SQLAlchemy engine
 engine = create_engine(DATABASE_URL)
