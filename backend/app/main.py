@@ -7,7 +7,10 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Change this in production to your frontend domain.
+    allow_origins=[
+        "https://remap-pt-frontend.herokuapp.com",
+        "http://localhost:3000"  # For local development
+    ],
     allow_methods=["*"],
     allow_headers=["*"],
 )

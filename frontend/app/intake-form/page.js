@@ -19,6 +19,8 @@ import {
 } from "../../components/ui/select";
 import { Checkbox } from "../../components/ui/checkbox";
 
+const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE || '';
+
 // IntakeFormPage Component
 // This component handles the medical intake form with 21 questions
 // Questions 1-14 are always shown, while questions 15-21 are conditionally displayed
@@ -86,7 +88,7 @@ const IntakeFormPage = () => {
 			console.log("Form data before submission:", data);
 			console.log("Processed data being sent to server:", formData);
 
-			const response = await fetch("/api/intake_analysis", {
+			const response = await fetch(`${apiBaseUrl}/api/intake_analysis`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(formData),

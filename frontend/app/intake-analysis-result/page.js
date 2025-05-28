@@ -17,6 +17,8 @@ import { useEffect, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
+const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE || '';
+
 const IntakeAnalysisResultPage = () => {
 	const [analysisResult] = useAtom(intakeAnalysisResultAtom);
 	const router = useRouter();
@@ -59,7 +61,7 @@ const IntakeAnalysisResultPage = () => {
 			});
 
 			// Save feedback along with the analysis result and session ID
-			const response = await fetch("/api/intake_analysis/feedback", {
+			const response = await fetch(`${apiBaseUrl}/api/intake_analysis/feedback`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
