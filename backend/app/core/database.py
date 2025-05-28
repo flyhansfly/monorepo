@@ -7,15 +7,20 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.engine.url import make_url
 from ..models.database import Base
 
+# Get and normalize DATABASE_URL
 DATABASE_URL = os.getenv("DATABASE_URL")
-if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 if not DATABASE_URL:
     raise RuntimeError("🛑 DATABASE_URL not set")
 
-# Ensure we use asyncpg
+# Normalize the URL to use postgresql://
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+# Parse and ensure we're using asyncpg
 url = make_url(DATABASE_URL)
 if url.drivername == "postgresql":
+    url = url.set(drivername="postgresql+asyncpg")
+elif url.drivername == "postgres":
     url = url.set(drivername="postgresql+asyncpg")
 
 # Create databases Database instance for async operations
