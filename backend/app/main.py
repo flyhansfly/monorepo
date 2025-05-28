@@ -1,10 +1,10 @@
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .core.database import init_db, close_db, database
+from .core.database import init_db, close_db
 from .core.logging import logger, log_event
 from .core.redis import redis_client
-from backend.app.api import intake_analysis, final_analysis, treatment_plan
+from .api import intake_analysis, final_analysis, treatment_plan
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
