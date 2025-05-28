@@ -5,14 +5,17 @@ from backend.app.api import intake_analysis, final_analysis, treatment_plan
 
 app = FastAPI()
 
+# Configure CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://remap-pt-frontend.herokuapp.com",
-        "http://localhost:3000"  # For local development
+        "https://remap-pt-frontend-fb59e2ffd3d3.herokuapp.com",  # Production frontend
+        "http://localhost:3000"  # Local development
     ],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 app.include_router(intake_analysis.router,
