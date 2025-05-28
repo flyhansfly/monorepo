@@ -8,7 +8,7 @@ SQLAlchemy[asyncio]==2.0.41
 asyncpg==0.30.0
 
 # logging
-structlog==24.0.0
+structlog==25.3.0
 
 # other deps
 pydantic==2.11.4
