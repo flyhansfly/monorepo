@@ -9,7 +9,8 @@ import json
 from .intake_analysis import store_treatment_plan
 from langchain.output_parsers import PydanticOutputParser
 from .session_store import session_store
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from ..core.database import get_db
 from ..models.database import Session as SessionModel, LLMLog
 
@@ -23,7 +24,7 @@ class TreatmentPlanRequest(BaseModel):
     session_id: str
 
 @router.post("/treatment_plan", response_model=TreatmentPlan)
-async def generate_treatment_plan(request: TreatmentPlanRequest, db: Session = Depends(get_db)):
+async def generate_treatment_plan(request: TreatmentPlanRequest, db: AsyncSession = Depends(get_db)):
     """
     Generate a treatment plan based on the analysis result.
     """
@@ -31,7 +32,10 @@ async def generate_treatment_plan(request: TreatmentPlanRequest, db: Session = D
         logger.info(f"Generating treatment plan for session {request.session_id}")
         
         # Fetch the session data from the database
-        session_data = db.query(SessionModel).filter(SessionModel.session_id == request.session_id).first()
+        result = await db.execute(
+            select(SessionModel).where(SessionModel.session_id == request.session_id)
+        )
+        session_data = result.scalar_one_or_none()
         if not session_data:
             logger.error(f"No session found for ID: {request.session_id}")
             raise HTTPException(status_code=404, detail="No analysis found for that session")
@@ -58,7 +62,7 @@ async def generate_treatment_plan(request: TreatmentPlanRequest, db: Session = D
             }
         )
         db.add(llm_log)
-        db.commit()
+        await db.commit()
         
         # Store the treatment plan
         store_treatment_plan(response, request.session_id)
@@ -105,7 +109,7 @@ async def generate_treatment_plan(request: TreatmentPlanRequest, db: Session = D
             }
         )
         db.add(llm_log)
-        db.commit()
+        await db.commit()
         
         # Store the default treatment plan
         store_treatment_plan(treatment_plan, request.session_id)
