@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: pt-dr-ray-backend
+    runtime: python
+    rootDir: ./backend
+    buildCommand: |
+      python -m pip install --upgrade pip
+      python -m pip install -r requirements.txt
+    startCommand: python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ENVIRONMENT
+        value: production
+      - key: PYTHON_VERSION
+        value: 3.11.11
+    plan: free
+
+  - type: web
+    name: pt-dr-ray-frontend
+    runtime: node
+    rootDir: ./frontend
+    buildCommand: |
+      npm install
+      npm run build
+    startCommand: npm start
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://pt-dr-ray-backend.onrender.com
+      - key: NODE_ENV
+        value: production
+    plan: free
