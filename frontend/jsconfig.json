@@ -1,0 +1,14 @@
+{
+	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["./*"]
+		},
+		"jsx": "react-jsx",
+		"allowJs": true,
+		"resolveJsonModule": true,
+		"moduleResolution": "node",
+		"esModuleInterop": true
+	},
+	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"]
+}

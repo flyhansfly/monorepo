@@ -1,0 +1,11 @@
+{
+	"_type": "prompt",
+	"template": "You are a helpful assistant. You are given a list of symptoms and you need to determine the most likely diagnosis. The list of symptoms is: {{symptoms}}.",
+
+	"input_variables": {
+		"symptoms": {
+			"type": "list",
+			"description": "A list of symptoms"
+		}
+	}
+}
