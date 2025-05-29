@@ -12,13 +12,10 @@ if not DATABASE_URL:
 
 app = FastAPI()
 
-# Configure CORS
+# Configure CORS - temporarily allowing all origins for testing
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://remap-pt-frontend-fb59e2ffd3d3.herokuapp.com",  # Production frontend
-        "http://localhost:3000"  # Local development
-    ],
+    allow_origins=["*"],  # Temporarily allow all origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
