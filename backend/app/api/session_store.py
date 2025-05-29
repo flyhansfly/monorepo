@@ -39,7 +39,4 @@ async def session_store(session_id: str, data: Dict[str, Any], db: AsyncSession 
         logger.info(f"Session {session_id} stored successfully")
     except Exception as e:
         logger.error(f"Error storing session {session_id}: {str(e)}")
-        raise
-
-# Create a singleton instance
-session_store = SessionStore() 
+        raise 
