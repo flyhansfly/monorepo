@@ -6,6 +6,7 @@ from langchain.output_parsers import PydanticOutputParser
 import logging
 from langchain.globals import set_llm_cache
 from langchain.cache import InMemoryCache
+from .session_store import session_store
 from sqlalchemy.orm import Session
 from ..core.database import get_db
 from ..models.database import Session as SessionModel, LLMLog
